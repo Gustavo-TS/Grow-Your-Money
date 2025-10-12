@@ -1,5 +1,7 @@
 <template>
-  <router-view /> <!-- Renderiza o componente correspondente à rota -->
+  <div id="app">
+    <router-view></router-view>
+  </div>
 </template>
 
 <script>
