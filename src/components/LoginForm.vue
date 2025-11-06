@@ -65,6 +65,7 @@
               @focus="onEmailFocus"
               @blur="onEmailBlur"
             />
+            
             <label for="reset-email" class="floating-label" :class="{ 'active': resetEmail || emailFocused }">Email Address</label>
           </div>
         </div>
