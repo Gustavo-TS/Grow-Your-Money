@@ -5,17 +5,17 @@
       <form @submit.prevent="handleLogin">
         <div class="form-group">
           <div class="input-group">
-            <input 
-              id="username" 
-              v-model="username" 
-              type="text" 
+            <input
+              id="username"
+              v-model="username"
+              type="text"
               class="floating-input"
               :class="{ 'has-value': username }"
               autocomplete="username"
               spellcheck="false"
               @focus="onUsernameFocus"
               @blur="onUsernameBlur"
-              required 
+              required
             />
             <label for="username" class="floating-label" :class="{ 'active': username || usernameFocused }">Username</label>
           </div>
@@ -47,16 +47,17 @@
       </form>
     </div>
 
+
     <!-- Modal de Reset Password -->
     <div v-if="showResetPasswordModal" class="modal-overlay" @click="closeResetModal">
       <div class="modal" @click.stop>
         <h3>Reset Password</h3>
         <div class="form-group">
           <div class="input-group">
-            <input 
-              id="reset-email" 
-              v-model="resetEmail" 
-              type="email" 
+            <input
+              id="reset-email"  
+              v-model="resetEmail"
+              type="email"
               class="floating-input"
               :class="{ 'has-value': resetEmail }"
               autocomplete="email"
@@ -76,7 +77,10 @@
   </div>
 </template>
 
+
 <script>
+import api, { setAuthToken } from '@/services/apis';
+
 export default {
   name: 'LoginForm',
   data() {
@@ -92,10 +96,24 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      if (this.showResetPasswordModal) return;
+  async handleLogin() {
+    if (this.showResetPasswordModal) return;
+    try {
+      const { data } = await api.post('/auth/login', {
+        email: this.username,
+        senha: this.password
+      });
+      setAuthToken(data.token);
+      localStorage.setItem('jwt_token', data.token); // adiciona persistência
       this.$router.push('/dashboard');
-    },
+    } catch (error) {
+      console.error('Erro no login:', error);
+      const msg =
+        (error && error.response && error.response.data && (error.response.data.message || error.response.data.error))
+        || 'Usuário ou senha inválidos';
+      alert(msg);
+    }
+  },
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;
     },
@@ -107,7 +125,6 @@ export default {
       this.resetEmail = '';
       this.emailFocused = false;
     },
-    // Envia o dado para o pai/serviço e fecha. Sem validação client-side.
     submitReset() {
       this.$emit('reset-password', this.resetEmail);
       this.closeResetModal();
@@ -122,6 +139,7 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .login-container {
   display: flex;
@@ -133,6 +151,7 @@ export default {
   margin: 0;
   font-family: 'Arial', sans-serif;
 }
+
 
 .login-box {
   background-color: #fff;
@@ -146,6 +165,7 @@ export default {
   color: #004d00;
 }
 
+
 h2 {
   margin-bottom: 70px;
   font-size: 50px;
@@ -155,15 +175,18 @@ h2 {
   color: #004d00;
 }
 
+
 .form-group {
   margin-bottom: 50px;
 }
+
 
 .input-group {
   position: relative;
   display: flex;
   flex-direction: column;
 }
+
 
 .floating-label {
   position: absolute;
@@ -180,6 +203,7 @@ h2 {
   color: #004d00;
 }
 
+
 .floating-label.active {
   top: -15px;
   left: 0;
@@ -188,6 +212,7 @@ h2 {
   transform: translateY(0);
   font-weight: bold;
 }
+
 
 .floating-input {
   width: 100%;
@@ -204,6 +229,7 @@ h2 {
   box-shadow: none;
 }
 
+
 .floating-input:focus {
   outline: none;
   border-color: #004d00;
@@ -211,11 +237,13 @@ h2 {
   background-color: transparent !important; /* garante sem fundo */
 }
 
+
 .floating-input:hover {
   border-color: #004d00;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
   background-color: transparent !important; /* garante sem fundo */
 }
+
 
 /* remove o fundo aplicado quando há valor */
 .floating-input.has-value {
@@ -223,9 +251,11 @@ h2 {
   background-color: transparent !important;
 }
 
+
 .password-container {
   position: relative;
 }
+
 
 .password-dot {
   position: absolute;
@@ -240,14 +270,17 @@ h2 {
   z-index: 2;
 }
 
+
 .password-dot:hover {
   background-color: #013001;
 }
+
 
 .reset-group {
   text-align: left;
   margin-top: -35px;
 }
+
 
 .reset-password {
   font-size: 14px;
@@ -262,16 +295,19 @@ h2 {
   text-align: left;
 }
 
+
 .reset-password:hover {
   text-decoration: underline;
   background-color: transparent !important;
 }
+
 
 .button-container {
   display: flex;
   justify-content: center;
   margin-top: 80px;
 }
+
 
 .enter-button {
   width: 35%;
@@ -286,9 +322,11 @@ h2 {
   text-align: center;
 }
 
+
 .enter-button:hover {
   background-color: #006600;
 }
+
 
 .modal-overlay {
   position: fixed;
@@ -303,6 +341,7 @@ h2 {
   z-index: 9999;
 }
 
+
 .modal {
   background-color: #fff;
   padding: 30px;
@@ -315,6 +354,7 @@ h2 {
   color: #004d00;
 }
 
+
 .modal h3 {
   margin-bottom: 20px;
   font-size: 24px;
@@ -322,10 +362,12 @@ h2 {
   color: #004d00;
 }
 
+
 .modal .form-group {
   margin-bottom: 30px;
   text-align: left;
 }
+
 
 .modal-actions {
   margin-top: 25px;
@@ -333,6 +375,7 @@ h2 {
   gap: 15px;
   justify-content: center;
 }
+
 
 .confirm-button {
   background-color: #004d00;
@@ -347,9 +390,11 @@ h2 {
   transition: background-color 0.3s ease;
 }
 
+
 .confirm-button:hover {
   background-color: #006600;
 }
+
 
 .cancel-button {
   background-color: #ccc;
@@ -363,10 +408,12 @@ h2 {
   transition: background-color 0.3s ease;
 }
 
+
 .cancel-button:hover {
   background-color: #aaa;
 }
 </style>
+
 
 <!-- Correção do autofill (não escopada para garantir que o WebKit aplique) -->
 <style>
@@ -383,6 +430,7 @@ h2 {
   border-bottom: 2px solid #004d00 !important; /* borda verde no autofill */
 }
 
+
 /* Firefox */
 .floating-input:-moz-autofill {
   box-shadow: 0 0 0px 1000px transparent inset !important;
@@ -391,3 +439,6 @@ h2 {
   border-bottom: 2px solid #004d00 !important;
 }
 </style>
+
+
+

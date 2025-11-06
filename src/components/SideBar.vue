@@ -4,10 +4,10 @@
       <div class="logo" @click="toggleSidebar">
         <img :src="logoUrl" class="logo-image" />
       </div>
-     
+      
       <nav class="menu">
         <ul>
-          <li class="menu-item active">
+          <li class="menu-item">
             <router-link to="/dashboard" class="menu-link">
               <span v-if="!isCollapsed">Your Wallet</span>
               <span v-else>
@@ -15,7 +15,7 @@
               </span>
             </router-link>
           </li>
-          <li class="menu-item">
+          <li class="menu-item active">
             <router-link to="/transactions" class="menu-link">
               <span v-if="!isCollapsed">Transactions</span>
               <span v-else>
@@ -49,37 +49,10 @@
       </nav>
       <div class="user-info">
         <div class="user-avatar"></div>
-        <div class="user-name" v-if="!isCollapsed">{{ user.name }}</div>
+        <div class="user-name" v-if="!isCollapsed">Washington</div>
       </div>
     </aside>
-    <div class="main-content-container">
-      <main class="main-content">
-        <h1>Your Wallet</h1>
-        <div class="wallet-summary-container">
-          <div class="wallet-summary">
-            <div class="summary-item">
-              <h2>Balance</h2>
-              <p>{{ formatNumber(summary.balance) }}</p>
-            </div>
-            <div class="summary-item">
-              <h2>Income</h2>
-              <p>{{ formatNumber(summary.income) }}</p>
-            </div>
-            <div class="summary-item">
-              <h2>Expenses</h2>
-              <p>{{ formatNumber(summary.expense) }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="monthly-report">
-          <h2>Monthly Report</h2>
-          <div class="chart">
-            <!-- Aqui você pode integrar uma biblioteca de gráficos como Chart.js -->
-          </div>
-        </div>
-      </main>
-    </div>
-
+  </div>
 
 <div v-if="showModal" class="modal-overlay">
       <div class="modal">
@@ -91,112 +64,56 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 
 <script>
-import api, { getAuthToken } from '@/services/apis';
-
-
 export default {
   name: 'HomeDash',
   data() {
     return {
-      isCollapsed: false,
-      showModal: false,
-      logoUrl: require('@/assets/logoGYM.png'),
+      isCollapsed: false, // Controla o estado da sidebar
+      showModal: false, // Controla a exibição do modal
+      logoUrl: require('@/assets/logoGYM.png'), // Referência ao logo na pasta assets
       icons: {
-        wallet: 'https://img.icons8.com/?size=100&id=MZAxWHbLSIH0&format=png&color=FFFFFF',
-        transactions: 'https://img.icons8.com/?size=100&id=oPnXdgLlrQom&format=png&color=FFFFFF',
-        settings: 'https://img.icons8.com/m_rounded/512/FFFFFF/settings.png',
-        help: 'https://img.icons8.com/?size=100&id=16140&format=png&color=FFFFFF',
-        logout: 'https://img.icons8.com/?size=100&id=XkH3F3rY34H5&format=png&color=FFFFFF',
+        wallet: 'https://img.icons8.com/?size=100&id=MZAxWHbLSIH0&format=png&color=FFFFFF', // URL do ícone de Wallet
+        transactions: 'https://img.icons8.com/?size=100&id=oPnXdgLlrQom&format=png&color=FFFFFF', // URL do ícone de Transactions
+        settings: 'https://img.icons8.com/m_rounded/512/FFFFFF/settings.png', // URL do ícone de Settings
+        help: 'https://img.icons8.com/?size=100&id=16140&format=png&color=FFFFFF', // URL do ícone de Help 
+        logout: 'https://img.icons8.com/?size=100&id=XkH3F3rY34H5&format=png&color=FFFFFF', // URL do ícone de Logout
       },
-      user: {
-        name: '',
-        username: '',
-        id: null
-      },
-      summary: {
-        balance: 0,
-        income: 0,
-        expense: 0
-      }
     };
-  },
-mounted() {
-    const token = localStorage.getItem('jwt_token');
-    if (!token) {
-      this.$router.push('/');
-      return;
-    }
-    this.fetchSummary();
   },
   methods: {
     toggleSidebar() {
-      this.isCollapsed = !this.isCollapsed;
+      this.isCollapsed = !this.isCollapsed; // Alterna entre expandido e colapsado
     },
     showLogoutModal() {
-      this.showModal = true;
+      this.showModal = true; // Exibe o modal
     },
     hideLogoutModal() {
-      this.showModal = false;
+      this.showModal = false; // Oculta o modal
     },
     logout() {
-      localStorage.removeItem('jwt_token');
-      this.showModal = false;
-      this.$router.push('/');
+      this.showModal = false; // Oculta o modal
+      this.$router.push('/'); // Redireciona para a tela padrão (login)
     },
-
-    async fetchSummary() {
-          try {
-            const token = getAuthToken() || localStorage.getItem('jwt_token');
-            if (!token) {
-              this.$router.push('/');
-              return;
-            }
-            // Opcional: printa o token (masquei para debug)
-            const masked = token.length > 12 ? token.slice(0,6) + '...' + token.slice(-6) : token;
-            console.log('[DEBUG] Token em uso:', masked);
-
-            // Header agora é injetado pelo interceptor
-            const { data } = await api.get('/transacoes/resumo');
-            this.summary.balance = data.balance || 0;
-            this.summary.income = data.income || 0;
-            this.summary.expense = data.expense || 0;
-          } catch (err) {
-            console.error('Erro ao carregar resumo:', err);
-          }
-        },
-
-    formatNumber(value) {
-      try {
-        return Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      } catch {
-        return '0,00';
-      }
-    }
-  }
+  },
 };
 </script>
 
-
 <style scoped>
-
 
 .menu-link {
   text-decoration: none;
   color: inherit; /* Mantém a cor do texto */
 }
 
-
 .dashboard-container {
   display: flex;
   height: 100vh;
   font-family: 'Roboto', sans-serif;
 }
-
 
 .sidebar {
   width: 250px;
@@ -209,7 +126,6 @@ mounted() {
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   transition: width 0.3s ease; /* Animação para retrair/expandir */
 }
-
 
 .sidebar.collapsed {
   width: 80px; /* Largura da sidebar quando colapsada */
@@ -227,7 +143,6 @@ mounted() {
   margin-top:35px
 }
 
-
 .logo {
   font-size: 28px;
   font-weight: bold;
@@ -236,17 +151,14 @@ mounted() {
   cursor: pointer; /* Adiciona cursor para indicar que é clicável */
 }
 
-
 .menu {
   flex-grow: 1;
 }
-
 
 .menu ul {
   list-style: none; /* Remove as bolinhas */
   padding: 0; /* Remove o padding padrão */
 }
-
 
 .menu-item {
   margin: 35px 0; /* Aumenta o espaçamento entre os links */
@@ -255,27 +167,22 @@ mounted() {
   cursor: pointer;
 }
 
-
 .menu-item.active {
   font-weight: bold; /* Deixa o link ativo em bold */
 }
-
 
 .menu-icon {
   width: 30px;
   height: 30px;
   display: block; /* Garante que os ícones sejam tratados como blocos */
 
-
 }
-
 
 .user-info {
   display: flex;
   align-items: center;
   margin-top: 20px;
 }
-
 
 .user-avatar {
   width: 50px;
@@ -290,96 +197,16 @@ mounted() {
  margin-left: 12px;
 }
 
-
 .user-name {
   font-size: 18px;
   font-weight: bold;
 }
-
-
-.main-content-container {
-  flex-grow: 1;
-  background-color: #e0e0e0; /* Fundo cinza envolvendo o conteúdo principal */
-  padding: 20px;
-}
-
-
-.main-content {
-  background-color: #f9f9f9; /* Fundo interno do conteúdo principal */
-  padding: 40px;
-  border-radius: 10px;
-  height: 90%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-
-h1 {
-  font-size: 50px;
-  font-weight: bold;
-  margin-top: -10px;
-  color: #004322;
-}
-
-
-.wallet-summary-container {
-  margin-bottom: 30px;
-}
-
-
-.wallet-summary {
-  display: flex;
-  justify-content: space-between;
-}
-
-
-.summary-item {
-  background-color: #004322;
-  color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  height: 20vh;
-  width: 25%;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
-}
-
-
-.summary-item:hover {
-  transform: scale(1.05);
-}
-
-
-.summary-item h2 {
-  margin-top: -1px;
-  font-size: 30px;
-}
-
-
-.summary-item p {
-  text-align: center; /* Alinha os valores ao centro */
-  font-size: 50px;
-  font-weight: bold;
-}
-
-
-.monthly-report {
-  background-color: #004322;
-  color: #fff;
-  padding: 20px;
-  height: 40vh;
-  margin-top: 7vh;
-  border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-
 .chart {
   height: 31vh;
   background-color: #002b15;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
-
 
 .modal-overlay {
   position: fixed;
@@ -393,7 +220,6 @@ h1 {
   align-items: center;
 }
 
-
 .modal {
   background-color: #fff;
   padding: 20px;
@@ -402,11 +228,9 @@ h1 {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-
 .modal-actions {
   margin-top: 20px;
 }
-
 
 .confirm-button {
   background-color: #004322;
@@ -418,11 +242,9 @@ h1 {
   margin-right: 10px;
 }
 
-
 .confirm-button:hover {
   background-color: #002513;
 }
-
 
 .cancel-button {
   background-color: #ccc;
@@ -433,9 +255,7 @@ h1 {
   cursor: pointer;
 }
 
-
 .cancel-button:hover {
   background-color: #aaa;
 }
 </style>
-

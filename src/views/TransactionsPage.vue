@@ -49,7 +49,7 @@
       </nav>
       <div class="user-info">
         <div class="user-avatar"></div>
-        <div class="user-name" v-if="!isCollapsed">Washington</div>
+        <div class="user-name" v-if="!isCollapsed">transaction.nome</div>
       </div>
     </aside>
     <div class="main-content-container">
@@ -94,19 +94,21 @@
               <th>Transaction Type</th>
               <th>Amount</th>
               <th>Reason</th>
-              <th>Payment Method</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="transaction in transactions" :key="transaction.id">
-              <td :class="{'transaction-type-income': transaction.type === 'Income', 'transaction-type-expense': transaction.type === 'Expense'}">{{ transaction.type }}</td>
-              <td :class="{'transaction-amount income': transaction.type === 'Income', 'transaction-amount expense': transaction.type === 'Expense'}">{{ transaction.amount }}</td>
-              <td class="transaction-reason">{{ transaction.reason }}</td>
-              <td class="transaction-method">{{ transaction.paymentMethod }}</td>
-              <td class="transaction-date">{{ transaction.date }}</td>
-              <td>
+               <tr v-for="transaction in transactions" :key="transaction.id">
+        <td :class="{'transaction-type-income': transaction.type === 'Income', 'transaction-type-expense': transaction.type === 'Expense'}">
+          {{ transaction.type }}
+        </td>
+        <td :class="{'transaction-amount income': transaction.type === 'Income', 'transaction-amount expense': transaction.type === 'Expense'}">
+          {{ transaction.amount }}
+        </td>
+        <td class="transaction-reason">{{ transaction.reason }}</td>
+        <td class="transaction-date">{{ transaction.date }}</td>
+        <td>
                 <button class="edit-button" @click="editTransaction(transaction.id)">Edit</button>
                 <button class="delete-button" @click="deleteTransaction(transaction.id)">Delete</button>
               </td>
@@ -130,6 +132,8 @@
 
 
 <script>
+import api from '@/services/apis';
+
 export default {
   name: "TransactionsPage",
   data() {
@@ -144,24 +148,8 @@ export default {
         help: 'https://img.icons8.com/?size=100&id=16140&format=png&color=FFFFFF',
         logout: 'https://img.icons8.com/?size=100&id=XkH3F3rY34H5&format=png&color=FFFFFF',
       },
-      transactions: [
-        {
-          id: 1,
-          type: "Expense",
-          amount: "R$ 150,00",
-          reason: "Leisure",
-          paymentMethod: "Credit Card",
-          date: "2025-06-16",
-        },
-        {
-          id: 2,
-          type: "Income",
-          amount: "R$ 1050,00",
-          reason: "Work",
-          paymentMethod: "Bank Transfer",
-          date: "2025-06-05",
-        },
-      ],       filteredTransactions: [],
+      transactions: [],
+      filteredTransactions: [],
       selectedMonth: "",
       selectedYear: "",
       monthFocused: false,
@@ -205,16 +193,81 @@ export default {
         this.yearFocused = false;
       }
     },
-       filterTransactions() {
+async fetchTransactions() {
+      try {
+        this.loading = true;
+        this.loadError = '';
+        const resp = await api.get('/transacoes');
+        const list = Array.isArray(resp.data) ? resp.data : (resp.data && resp.data.content) || [];
+        // mapeia para o formato usado na tabela
+        this.transactions = list.map((tx) => {
+          const tipo = tx.tipo || (tx.categoria && tx.categoria.tipo) || '';
+          const isIncome = ('' + tipo).toLowerCase() === 'ganho' || ('' + tipo).toLowerCase() === 'income';
+          const valor = typeof tx.valor !== 'undefined' ? tx.valor : tx.amount;
+          const descricao = tx.motivo || tx.descricao || tx.reason || '';
+          const forma = tx.formaPagamento || tx.paymentMethod || '';
+          const dataRaw = tx.data || tx.date || '';
+          return {
+            id: tx.id,
+            type: isIncome ? 'Income' : 'Expense',
+            amount: this.formatCurrency(valor),
+            reason: descricao,
+            paymentMethod: forma,
+            date: this.formatDate(dataRaw)
+          };
+        });
+        // opcional: iniciar filtrado = tudo
+        this.filteredTransactions = this.transactions.slice(0);
+      } catch (err) {
+        console.error('Erro ao carregar transações:', err);
+        this.loadError = (err && err.response && (err.response.data && (err.response.data.message || err.response.data.error))) || err.message || 'Erro ao carregar';
+      } finally {
+        this.loading = false;
+      }
+    },
+    async deleteTransaction(id) {
+      try {
+        const ok = window.confirm('Deseja realmente excluir esta transação?');
+        if (!ok) return;
+        await api.delete(`/transacoes/${id}`);
+        // remove localmente
+        this.transactions = this.transactions.filter(t => t.id !== id);
+        this.filteredTransactions = this.filteredTransactions.filter(t => t.id !== id);
+      } catch (err) {
+        console.error('Erro ao excluir transação:', err);
+        alert((err && err.response && (err.response.data && (err.response.data.message || err.response.data.error))) || 'Falha ao excluir');
+      }
+    },
+    formatCurrency(value) {
+      try {
+        const n = Number(value || 0);
+        return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      } catch {
+        return 'R$ 0,00';
+      }
+    },
+    formatDate(value) {
+      try {
+        if (!value) return '';
+        const d = new Date(value);
+        if (isNaN(d.getTime())) return value;
+        return d.toLocaleDateString('pt-BR');
+      } catch {
+        return value || '';
+      }
+    },
+    filterTransactions() {
+      // mantém seu filtro funcionando sobre a lista atual
       this.filteredTransactions = this.transactions.filter((transaction) => {
-        const transactionDate = new Date(transaction.date);
-        const transactionMonth = transactionDate.toLocaleString("default", { month: "long" });
-        const transactionYear = transactionDate.getFullYear().toString();
-        return transactionMonth === this.selectedMonth && transactionYear === this.selectedYear;
+        const dt = transaction.date; // já está formatado pt-BR
+        // reconstrói para Date se necessário
+        return (!this.selectedMonth || dt.toLowerCase().includes(this.selectedMonth.toLowerCase()))
+            && (!this.selectedYear || dt.includes(this.selectedYear));
       });
     },
   },
     mounted() {
+    this.fetchTransactions();
     this.filteredTransactions = this.transactions;
   },
 };
