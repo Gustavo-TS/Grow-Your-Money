@@ -104,15 +104,34 @@ export default {
         email: this.username,
         senha: this.password
       });
+      
+      // 1. Define o token no Axios para futuras requisições
       setAuthToken(data.token);
-      localStorage.setItem('jwt_token', data.token); // adiciona persistência
+      
+      // 2. Salva o token no localStorage
+      localStorage.setItem('jwt_token', data.token);
+
+      // 3. 🚨 NOVO: Salva o nome do usuário no localStorage
+      // Assumimos que a resposta da API (data) contém um campo 'nome'.
+      // Se sua API usa 'name' ou 'userName', ajuste 'data.nome' para o campo correto.
+      if (data.nome) {
+        localStorage.setItem('user_name', data.nome); 
+      } else {
+        // Fallback, caso a API não retorne o nome diretamente, usa o email ou um valor genérico
+        localStorage.setItem('user_name', this.username.split('@')[0] || 'Usuário');
+      }
+
+      // 4. Redireciona para o Dashboard
       this.$router.push('/dashboard');
+
     } catch (error) {
       console.error('Erro no login:', error);
       const msg =
         (error && error.response && error.response.data && (error.response.data.message || error.response.data.error))
         || 'Usuário ou senha inválidos';
-      alert(msg);
+      
+      // Substituindo alert() por console.error() para evitar problemas em iframes
+      console.error('Falha no Login:', msg);
     }
   },
     togglePasswordVisibility() {
@@ -440,6 +459,3 @@ h2 {
   border-bottom: 2px solid #004d00 !important;
 }
 </style>
-
-
-

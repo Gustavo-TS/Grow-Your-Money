@@ -30,15 +30,7 @@
             </span>
           </router-link>
         </li>
-        <li class="menu-item" :class="{ active: isActive('/help') }">
-          <router-link to="/help" class="menu-link">
-            <span v-if="!collapsed">Help / Support</span>
-            <span v-else>
-              <img :src="icons.help" alt="Help" class="menu-icon" />
-            </span>
-          </router-link>
-        </li>
-        <li class="menu-item" @click="$emit('logout-click')">
+        <li class="menu-item" @click="handleLogout">
           <span v-if="!collapsed">Log Out</span>
           <span v-else>
             <img :src="icons.logout" class="menu-icon" alt="Logout" />
@@ -49,7 +41,8 @@
 
     <div class="user-info">
       <div class="user-avatar"></div>
-      <div class="user-name" v-if="!collapsed">{{ user.name }}</div>
+      <!-- ✅ ALTERADO: Consumindo o estado local 'userName' -->
+      <div class="user-name" v-if="!collapsed">{{ userName }}</div> 
     </div>
   </aside>
 </template>
@@ -57,16 +50,39 @@
 <script>
 export default {
   name: 'SidebarNav',
+  // ✅ REMOVEMOS A PROP 'user'
   props: {
     collapsed: { type: Boolean, default: false },
-    user: { type: Object, default: () => ({}) },
     icons: { type: Object, required: true },
     logoUrl: { type: String, required: true }
+  },
+  // ✅ ADICIONAMOS O ESTADO LOCAL
+  data() {
+    return {
+      userName: 'Carregando...' // Estado inicial
+    };
   },
   methods: {
     isActive(path) {
       return this.$route.path.startsWith(path);
+    },
+    // Método para buscar o nome do localStorage
+    loadUserName() {
+      const storedName = localStorage.getItem('user_name');
+      this.userName = storedName || 'Usuário';
+    },
+    // Handle logout localmente (limpando e emitindo o evento)
+    handleLogout() {
+      // Limpa a chave do token e do nome
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_name'); 
+      // Emite o evento para o pai lidar com o redirecionamento
+      this.$emit('logout-click');
     }
+  },
+  // ✅ CHAMAMOS O MÉTODO AO MONTAR O COMPONENTE
+  mounted() {
+    this.loadUserName();
   }
 };
 </script>
