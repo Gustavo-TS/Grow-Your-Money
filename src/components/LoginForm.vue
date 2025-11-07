@@ -17,7 +17,7 @@
               @blur="onUsernameBlur"
               required
             />
-            <label for="username" class="floating-label" :class="{ 'active': username || usernameFocused }">Username</label>
+            <label for="username" class="floating-label" :class="{ 'active': username || usernameFocused }">Email</label>
           </div>
         </div>
         <div class="form-group">

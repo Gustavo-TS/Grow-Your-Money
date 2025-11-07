@@ -22,11 +22,11 @@
             </span>
           </router-link>
         </li>
-        <li class="menu-item" :class="{ active: isActive('/settings') }">
-          <router-link to="/settings" class="menu-link">
-            <span v-if="!collapsed">Settings</span>
+        <li class="menu-item" :class="{ active: isActive('/Users') }">
+          <router-link to="/Users" class="menu-link">
+            <span v-if="!collapsed">Users</span>
             <span v-else>
-              <img :src="icons.settings" alt="Settings" class="menu-icon" />
+              <img :src="icons.settings" alt="Users" class="menu-icon" />
             </span>
           </router-link>
         </li>

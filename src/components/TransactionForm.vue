@@ -139,8 +139,8 @@ export default {
         tipo: 'gasto',
         valor: '',
         descricao: '',
-        data: '',          // 'YYYY-MM-DD'
-        categoriaId: ''    // string no select; converter para número no submit
+        data: '',// 'YYYY-MM-DD'
+        categoriaId: '' // string no select; converter para número no submit
       },
         focus: { categoria: false, valor: false, data: false, descricao: false } // controle floating
     };
