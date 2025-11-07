@@ -1,92 +1,20 @@
 <template>
   <div class="dashboard-container">
-    <aside :class="['sidebar', { 'collapsed': isCollapsed }]">
-      <div class="logo" @click="toggleSidebar">
-        <img :src="logoUrl" class="logo-image" />
-      </div>
-      
-      <nav class="menu">
-        <ul>
-          <li class="menu-item">
-            <router-link to="/dashboard" class="menu-link">
-              <span v-if="!isCollapsed">Your Wallet</span>
-              <span v-else>
-                <img :src="icons.wallet" alt="Wallet Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item active">
-            <router-link to="/transactions" class="menu-link">
-              <span v-if="!isCollapsed">Transactions</span>
-              <span v-else>
-                <img :src="icons.transactions" alt="Transactions Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/settings" class="menu-link">
-              <span v-if="!isCollapsed">Settings</span>
-              <span v-else>
-                <img :src="icons.settings" alt="Settings Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/help" class="menu-link">
-              <span v-if="!isCollapsed">Help / Support</span>
-              <span v-else>
-                <img :src="icons.help" alt="Help Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item" @click="showLogoutModal">
-            <span v-if="!isCollapsed">Log Out</span>
-            <span v-else>
-              <img :src="icons.logout" class="menu-icon" />
-            </span>
-          </li>
-        </ul>
-      </nav>
-      <div class="user-info">
-        <div class="user-avatar"></div>
-        <div class="user-name" v-if="!isCollapsed">transaction.nome</div>
-      </div>
-    </aside>
+    <SidebarNav
+      :collapsed="isCollapsed"
+      :user="user"
+      :icons="icons"
+      :logoUrl="logoUrl"
+      @toggle="toggleSidebar"
+      @logout-click="showLogoutModal"
+    />
     <div class="main-content-container">
       <main class="main-content">
         <div class="transactions-header">
-          <h1>Transactions</h1> 
-          <div class="filter-container">
-            <div class="filter-group">
-              <select 
-                id="month-select" 
-                v-model="selectedMonth" 
-                class="filter-select"
-                :class="{ 'has-value': selectedMonth }"
-                @focus="onFocus"
-                @blur="onBlur"
-              >
-                <option value="" disabled selected hidden></option>
-                <option v-for="month in months" :key="month" :value="month">{{ month }}</option>
-              </select>
-              <label for="month-select" class="filter-label" :class="{ 'active': selectedMonth || monthFocused }">Month</label>
-            </div>
-            <div class="filter-group">
-              <select 
-                id="year-select" 
-                v-model="selectedYear" 
-                class="filter-select"
-                :class="{ 'has-value': selectedYear }"
-                @focus="onFocus"
-                @blur="onBlur"
-              >
-                <option value="" disabled selected hidden></option>
-                <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
-              </select>
-              <label for="year-select" class="filter-label" :class="{ 'active': selectedYear || yearFocused }">Year</label>
-            </div>
-            <button @click="filterTransactions" class="filter-button">Filter</button>
-          </div>
+          <h1>Transactions</h1>
+          <button class="new-transaction-btn" @click="goNewTransaction">
+            New Transaction
+          </button>
         </div>
         <table class="transactions-table">
           <thead>
@@ -99,16 +27,16 @@
             </tr>
           </thead>
           <tbody>
-               <tr v-for="transaction in transactions" :key="transaction.id">
-        <td :class="{'transaction-type-income': transaction.type === 'Income', 'transaction-type-expense': transaction.type === 'Expense'}">
-          {{ transaction.type }}
-        </td>
-        <td :class="{'transaction-amount income': transaction.type === 'Income', 'transaction-amount expense': transaction.type === 'Expense'}">
-          {{ transaction.amount }}
-        </td>
-        <td class="transaction-reason">{{ transaction.reason }}</td>
-        <td class="transaction-date">{{ transaction.date }}</td>
-        <td>
+            <tr v-for="transaction in transactions" :key="transaction.id">
+              <td :class="{'transaction-type-income': transaction.type === 'Income', 'transaction-type-expense': transaction.type === 'Expense'}">
+                {{ transaction.type }}
+              </td>
+              <td :class="{'transaction-amount income': transaction.type === 'Income', 'transaction-amount expense': transaction.type === 'Expense'}">
+                {{ transaction.amount }}
+              </td>
+              <td class="transaction-reason">{{ transaction.reason }}</td>
+              <td class="transaction-date">{{ transaction.date }}</td>
+              <td>
                 <button class="edit-button" @click="editTransaction(transaction.id)">Edit</button>
                 <button class="delete-button" @click="deleteTransaction(transaction.id)">Delete</button>
               </td>
@@ -118,24 +46,26 @@
       </main>
     </div>
   </div>
+
   <div v-if="showModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Confirm Logout</h2>
-        <p>Are you sure you want to log out?</p>
-        <div class="modal-actions">
-          <button class="confirm-button" @click="logout">Yes</button>
-          <button class="cancel-button" @click="hideLogoutModal">No</button>
-        </div>
+    <div class="modal">
+      <h2>Confirm Logout</h2>
+      <p>Are you sure you want to log out?</p>
+      <div class="modal-actions">
+        <button class="confirm-button" @click="logout">Yes</button>
+        <button class="cancel-button" @click="hideLogoutModal">No</button>
       </div>
     </div>
+  </div>
 </template>
-
 
 <script>
 import api from '@/services/apis';
+import SidebarNav from '@/components/SideBar.vue';
 
 export default {
-  name: "TransactionsPage",
+  name: 'TransactionsPage',
+  components: { SidebarNav },
   data() {
     return {
       isCollapsed: false, // Controla o estado da sidebar
@@ -162,14 +92,16 @@ export default {
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed; // Alterna entre expandido e colapsado
     },
-    editTransaction(id) {
-      alert(`Edit transaction with ID: ${id}`);
-      // Implementar lógica de edição
+
+    goNewTransaction() {
+      this.$router.push('/transactions/new');
     },
-    deleteTransaction(id) {
-      alert(`Delete transaction with ID: ${id}`);
-      // Implementar lógica de exclusão
+    
+   editTransaction(id) {
+    this.$router.push({ name: 'transactions-edit', params: { id } });
     },
+    
+
     showLogoutModal() {
       this.showModal = true; // Exibe o modal
     },
@@ -246,16 +178,21 @@ async fetchTransactions() {
         return 'R$ 0,00';
       }
     },
-    formatDate(value) {
-      try {
-        if (!value) return '';
-        const d = new Date(value);
-        if (isNaN(d.getTime())) return value;
-        return d.toLocaleDateString('pt-BR');
-      } catch {
-        return value || '';
-      }
-    },
+   formatDate(dataRaw) {
+  if (!dataRaw) return '';
+  if (typeof dataRaw === 'string') {
+    const base = dataRaw.includes('T') ? dataRaw.split('T')[0] : dataRaw.slice(0, 10);
+    const [y,m,d] = base.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  if (dataRaw instanceof Date) {
+    const y = dataRaw.getFullYear();
+    const m = String(dataRaw.getMonth() + 1).padStart(2, '0');
+    const d = String(dataRaw.getDate()).padStart(2, '0');
+    return `${d}/${m}/${y}`;
+  }
+  return '';
+},
     filterTransactions() {
       // mantém seu filtro funcionando sobre a lista atual
       this.filteredTransactions = this.transactions.filter((transaction) => {
@@ -280,6 +217,31 @@ async fetchTransactions() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 25px;
+}
+
+.new-transaction-btn {
+  background: #004322;
+  color: #fff;
+  border: 0;
+  padding: 12px 22px;
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: .5px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,.18);
+  transition: background .18s, transform .18s, box-shadow .18s;
+}
+
+.new-transaction-btn:hover {
+  background: #00582c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -4px rgba(0,0,0,.28);
+}
+
+.new-transaction-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,.18);
 }
 
 .filter-container {
@@ -360,7 +322,7 @@ async fetchTransactions() {
 
 .filter-select:focus + .filter-label + ::after,
 .filter-select:hover + .filter-label + ::after {
-  color: #004322;
+  color: #00582c;
 }
 
 .filter-button {
@@ -553,7 +515,7 @@ h1 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .edit-button:hover {
-  background-color: #002b15;
+  background-color: #00582c;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -568,7 +530,7 @@ h1 {
 
 .chart {
   height: 31vh;
-  background-color: #002b15;
+  background-color: #00582c;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
@@ -609,7 +571,7 @@ h1 {
 }
 
 .confirm-button:hover {
-  background-color: #002513;
+  background-color: #00582c;
 }
 
 .cancel-button {

@@ -1,120 +1,77 @@
 <template>
-  <div class="dashboard-container">
-    <aside :class="['sidebar', { 'collapsed': isCollapsed }]">
-      <div class="logo" @click="toggleSidebar">
-        <img :src="logoUrl" class="logo-image" />
-      </div>
-      
-      <nav class="menu">
-        <ul>
-          <li class="menu-item">
-            <router-link to="/dashboard" class="menu-link">
-              <span v-if="!isCollapsed">Your Wallet</span>
-              <span v-else>
-                <img :src="icons.wallet" alt="Wallet Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item active">
-            <router-link to="/transactions" class="menu-link">
-              <span v-if="!isCollapsed">Transactions</span>
-              <span v-else>
-                <img :src="icons.transactions" alt="Transactions Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/settings" class="menu-link">
-              <span v-if="!isCollapsed">Settings</span>
-              <span v-else>
-                <img :src="icons.settings" alt="Settings Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/help" class="menu-link">
-              <span v-if="!isCollapsed">Help / Support</span>
-              <span v-else>
-                <img :src="icons.help" alt="Help Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item" @click="showLogoutModal">
-            <span v-if="!isCollapsed">Log Out</span>
-            <span v-else>
-              <img :src="icons.logout" class="menu-icon" />
-            </span>
-          </li>
-        </ul>
-      </nav>
-      <div class="user-info">
-        <div class="user-avatar"></div>
-        <div class="user-name" v-if="!isCollapsed">Washington</div>
-      </div>
-    </aside>
-  </div>
-
-<div v-if="showModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Confirm Logout</h2>
-        <p>Are you sure you want to log out?</p>
-        <div class="modal-actions">
-          <button class="confirm-button" @click="logout">Yes</button>
-          <button class="cancel-button" @click="hideLogoutModal">No</button>
-        </div>
-      </div>
+  <aside :class="['sidebar', { collapsed }]">
+    <div class="logo" @click="$emit('toggle')">
+      <img :src="logoUrl" class="logo-image" />
     </div>
-</template>
 
+    <nav class="menu">
+      <ul>
+        <li class="menu-item" :class="{ active: isActive('/dashboard') }">
+          <router-link to="/dashboard" class="menu-link">
+            <span v-if="!collapsed">Your Wallet</span>
+            <span v-else>
+              <img :src="icons.wallet" alt="Wallet" class="menu-icon" />
+            </span>
+          </router-link>
+        </li>
+        <li class="menu-item" :class="{ active: isActive('/transactions') }">
+          <router-link to="/transactions" class="menu-link">
+            <span v-if="!collapsed">Transactions</span>
+            <span v-else>
+              <img :src="icons.transactions" alt="Transactions" class="menu-icon" />
+            </span>
+          </router-link>
+        </li>
+        <li class="menu-item" :class="{ active: isActive('/settings') }">
+          <router-link to="/settings" class="menu-link">
+            <span v-if="!collapsed">Settings</span>
+            <span v-else>
+              <img :src="icons.settings" alt="Settings" class="menu-icon" />
+            </span>
+          </router-link>
+        </li>
+        <li class="menu-item" :class="{ active: isActive('/help') }">
+          <router-link to="/help" class="menu-link">
+            <span v-if="!collapsed">Help / Support</span>
+            <span v-else>
+              <img :src="icons.help" alt="Help" class="menu-icon" />
+            </span>
+          </router-link>
+        </li>
+        <li class="menu-item" @click="$emit('logout-click')">
+          <span v-if="!collapsed">Log Out</span>
+          <span v-else>
+            <img :src="icons.logout" class="menu-icon" alt="Logout" />
+          </span>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="user-info">
+      <div class="user-avatar"></div>
+      <div class="user-name" v-if="!collapsed">{{ user.name }}</div>
+    </div>
+  </aside>
+</template>
 
 <script>
 export default {
-  name: 'HomeDash',
-  data() {
-    return {
-      isCollapsed: false, // Controla o estado da sidebar
-      showModal: false, // Controla a exibição do modal
-      logoUrl: require('@/assets/logoGYM.png'), // Referência ao logo na pasta assets
-      icons: {
-        wallet: 'https://img.icons8.com/?size=100&id=MZAxWHbLSIH0&format=png&color=FFFFFF', // URL do ícone de Wallet
-        transactions: 'https://img.icons8.com/?size=100&id=oPnXdgLlrQom&format=png&color=FFFFFF', // URL do ícone de Transactions
-        settings: 'https://img.icons8.com/m_rounded/512/FFFFFF/settings.png', // URL do ícone de Settings
-        help: 'https://img.icons8.com/?size=100&id=16140&format=png&color=FFFFFF', // URL do ícone de Help 
-        logout: 'https://img.icons8.com/?size=100&id=XkH3F3rY34H5&format=png&color=FFFFFF', // URL do ícone de Logout
-      },
-    };
+  name: 'SidebarNav',
+  props: {
+    collapsed: { type: Boolean, default: false },
+    user: { type: Object, default: () => ({}) },
+    icons: { type: Object, required: true },
+    logoUrl: { type: String, required: true }
   },
   methods: {
-    toggleSidebar() {
-      this.isCollapsed = !this.isCollapsed; // Alterna entre expandido e colapsado
-    },
-    showLogoutModal() {
-      this.showModal = true; // Exibe o modal
-    },
-    hideLogoutModal() {
-      this.showModal = false; // Oculta o modal
-    },
-    logout() {
-      this.showModal = false; // Oculta o modal
-      this.$router.push('/'); // Redireciona para a tela padrão (login)
-    },
-  },
+    isActive(path) {
+      return this.$route.path.startsWith(path);
+    }
+  }
 };
 </script>
 
 <style scoped>
-
-.menu-link {
-  text-decoration: none;
-  color: inherit; /* Mantém a cor do texto */
-}
-
-.dashboard-container {
-  display: flex;
-  height: 100vh;
-  font-family: 'Roboto', sans-serif;
-}
-
 .sidebar {
   width: 250px;
   background-color: #004322;
@@ -123,24 +80,22 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   padding: 20px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-  transition: width 0.3s ease; /* Animação para retrair/expandir */
+  box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  transition: width .3s ease;
 }
+.sidebar.collapsed { width: 80px; }
 
-.sidebar.collapsed {
-  width: 80px; /* Largura da sidebar quando colapsada */
-}
 .logo-image {
-  max-width: 80%; /* Define a largura máxima como 80% da sidebar */
-  height: auto; /* Mantém a proporção da altura */
-  margin: 0 auto; /* Centraliza a logo horizontalmente */
-  display: block; /* Garante que a logo seja tratada como um bloco */
+  max-width: 80%;
+  height: auto;
+  margin: 0 auto;
+  display: block;
 }
 .sidebar.collapsed .logo-image {
-  max-width: 160%; /* Aumenta a largura da logo quando a sidebar está minimizada */
-  margin-left:-8px;
-  margin-bottom:20px;
-  margin-top:35px
+  max-width: 160%;
+  margin-left: -8px;
+  margin-bottom: 20px;
+  margin-top: 35px;
 }
 
 .logo {
@@ -148,34 +103,30 @@ export default {
   font-weight: bold;
   margin-bottom: 20px;
   text-align: center;
-  cursor: pointer; /* Adiciona cursor para indicar que é clicável */
-}
-
-.menu {
-  flex-grow: 1;
-}
-
-.menu ul {
-  list-style: none; /* Remove as bolinhas */
-  padding: 0; /* Remove o padding padrão */
-}
-
-.menu-item {
-  margin: 35px 0; /* Aumenta o espaçamento entre os links */
-  font-size: 22px; /* Aumenta o tamanho dos links */
-  margin-left: 20px;
   cursor: pointer;
 }
 
-.menu-item.active {
-  font-weight: bold; /* Deixa o link ativo em bold */
+.menu { flex-grow: 1; }
+.menu ul { list-style: none; padding: 0; margin: 0; }
+.menu-item {
+  margin: 35px 0;
+  font-size: 22px;
+  margin-left: 20px;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.menu-item.active { font-weight: bold; }
+.menu-item:hover { opacity: .85; }
+
+.menu-link {
+  text-decoration: none;
+  color: inherit;
 }
 
 .menu-icon {
   width: 30px;
   height: 30px;
-  display: block; /* Garante que os ícones sejam tratados como blocos */
-
+  display: block;
 }
 
 .user-info {
@@ -183,79 +134,14 @@ export default {
   align-items: center;
   margin-top: 20px;
 }
-
 .user-avatar {
   width: 50px;
   height: 50px;
   background-color: #fff;
   border-radius: 50%;
   margin-right: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-.sidebar.collapsed .user-avatar
-{
- margin-left: 12px;
-}
-
-.user-name {
-  font-size: 18px;
-  font-weight: bold;
-}
-.chart {
-  height: 31vh;
-  background-color: #002b15;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.modal-actions {
-  margin-top: 20px;
-}
-
-.confirm-button {
-  background-color: #004322;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  margin-right: 10px;
-}
-
-.confirm-button:hover {
-  background-color: #002513;
-}
-
-.cancel-button {
-  background-color: #ccc;
-  color: #000;
-  border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-}
-
-.cancel-button:hover {
-  background-color: #aaa;
-}
+.sidebar.collapsed .user-avatar { margin-left: 12px; }
+.user-name { font-size: 18px; font-weight: bold; }
 </style>

@@ -1,57 +1,13 @@
 <template>
   <div class="dashboard-container">
-    <aside :class="['sidebar', { 'collapsed': isCollapsed }]">
-      <div class="logo" @click="toggleSidebar">
-        <img :src="logoUrl" class="logo-image" />
-      </div>
-     
-      <nav class="menu">
-        <ul>
-          <li class="menu-item active">
-            <router-link to="/dashboard" class="menu-link">
-              <span v-if="!isCollapsed">Your Wallet</span>
-              <span v-else>
-                <img :src="icons.wallet" alt="Wallet Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/transactions" class="menu-link">
-              <span v-if="!isCollapsed">Transactions</span>
-              <span v-else>
-                <img :src="icons.transactions" alt="Transactions Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/settings" class="menu-link">
-              <span v-if="!isCollapsed">Settings</span>
-              <span v-else>
-                <img :src="icons.settings" alt="Settings Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item">
-            <router-link to="/help" class="menu-link">
-              <span v-if="!isCollapsed">Help / Support</span>
-              <span v-else>
-                <img :src="icons.help" alt="Help Icon" class="menu-icon" />
-              </span>
-            </router-link>
-          </li>
-          <li class="menu-item" @click="showLogoutModal">
-            <span v-if="!isCollapsed">Log Out</span>
-            <span v-else>
-              <img :src="icons.logout" class="menu-icon" />
-            </span>
-          </li>
-        </ul>
-      </nav>
-      <div class="user-info">
-        <div class="user-avatar"></div>
-        <div class="user-name" v-if="!isCollapsed">{{ user.name }}</div>
-      </div>
-    </aside>
+    <SidebarNav
+      :collapsed="isCollapsed"
+      :user="user"
+      :icons="icons"
+      :logoUrl="logoUrl"
+      @toggle="toggleSidebar"
+      @logout-click="showLogoutModal"
+    />
     <div class="main-content-container">
       <main class="main-content">
         <h1>Your Wallet</h1>
@@ -74,14 +30,13 @@
         <div class="monthly-report">
           <h2>Monthly Report</h2>
           <div class="chart">
-            <!-- Aqui você pode integrar uma biblioteca de gráficos como Chart.js -->
+            <GraficoDespesas :month="9" :year="2025" />
           </div>
         </div>
       </main>
     </div>
 
-
-<div v-if="showModal" class="modal-overlay">
+    <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <h2>Confirm Logout</h2>
         <p>Are you sure you want to log out?</p>
@@ -94,13 +49,14 @@
   </div>
 </template>
 
-
 <script>
 import api, { getAuthToken } from '@/services/apis';
-
+import GraficoDespesas from '@/components/GraficoDespesas.vue';
+import SidebarNav from '@/components/SideBar.vue';
 
 export default {
   name: 'HomeDash',
+   components: { GraficoDespesas, SidebarNav },
   data() {
     return {
       isCollapsed: false,
@@ -308,7 +264,7 @@ mounted() {
   background-color: #f9f9f9; /* Fundo interno do conteúdo principal */
   padding: 40px;
   border-radius: 10px;
-  height: 90%;
+  height: 92%;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
@@ -366,7 +322,7 @@ h1 {
   background-color: #004322;
   color: #fff;
   padding: 20px;
-  height: 40vh;
+  height: 45vh;
   margin-top: 7vh;
   border-radius: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -374,8 +330,7 @@ h1 {
 
 
 .chart {
-  height: 31vh;
-  background-color: #002b15;
+  height: 37vh;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
